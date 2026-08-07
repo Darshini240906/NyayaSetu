@@ -1,9 +1,11 @@
+from typing import Literal
 from pydantic import BaseModel, EmailStr
 
 
 class RegisterRequest(BaseModel):
-    organization_name: str
-    organization_slug: str
+    account_type: Literal["citizen", "court"] = "citizen"
+    organization_name: str | None = None   # required when account_type == "citizen"
+    organization_slug: str | None = None   # required when account_type == "citizen"
     email: EmailStr
     full_name: str
     password: str

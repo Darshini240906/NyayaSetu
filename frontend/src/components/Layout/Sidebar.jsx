@@ -12,7 +12,7 @@ const NAV = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Overview", permission: null },
   { to: "/legal-assistant", icon: Scale, label: "Understand My Case", permission: null },
   { to: "/reminders", icon: Bell, label: "Reminders", permission: null },
-  { to: "/court-dashboard", icon: Gavel, label: "Triage Dashboard", permission: null },
+  { to: "/court-dashboard", icon: Gavel, label: "Triage Dashboard", permission: "court:manage" },
   { to: "/chat", icon: MessageSquare, label: "AI Assistant", permission: "query:run" },
   { to: "/documents", icon: FileText, label: "Documents", permission: "documents:read" },
   { to: "/search", icon: Search, label: "Search", permission: "query:run" },

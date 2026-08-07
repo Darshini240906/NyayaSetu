@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Bell, CalendarPlus, CalendarCheck2, Trash2, Loader2, Plus } from "lucide-react";
+import { Bell, CalendarPlus, CalendarCheck2, Smartphone, Trash2, Loader2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   listReminders, createReminder, deleteReminder,
   getCalendarStatus, getCalendarOAuthUrl, syncReminderToCalendar,
+  downloadReminderIcs,
 } from "../services/api";
 
 function daysUntil(dateStr) {
@@ -71,6 +72,14 @@ export default function RemindersPage() {
     setForm({ title: "", due_date: "", note: "" });
     setShowForm(false);
     refresh();
+  }
+
+  async function handleDownloadIcs(r) {
+    try {
+      await downloadReminderIcs(r.id, `${r.title}.ics`);
+    } catch {
+      toast.error("Couldn't generate calendar file");
+    }
   }
 
   return (
@@ -161,6 +170,12 @@ export default function RemindersPage() {
                     Add to Calendar
                   </button>
                 )}
+                <button
+                  onClick={() => handleDownloadIcs(r)}
+                  className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-cream hover:border-gold/40 hover:text-gold transition-colors"
+                >
+                  <Smartphone size={13} /> Add to Phone
+                </button>
                 <button onClick={() => handleDelete(r.id)} className="text-rose-muted hover:text-danger transition-colors">
                   <Trash2 size={15} />
                 </button>

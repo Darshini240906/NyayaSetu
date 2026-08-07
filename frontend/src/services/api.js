@@ -31,6 +31,17 @@ export const downloadDocument = async (id, filename) => {
   link.remove();
   window.URL.revokeObjectURL(url);
 };
+export const downloadReminderIcs = async (id, filename) => {
+  const response = await api.get(`/reminders/${id}/ics`, { responseType: "blob" });
+  const url = window.URL.createObjectURL(new Blob([response.data], { type: "text/calendar" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename || "reminder.ics");
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
 export const getSanitisationReport = id => api.get(`/document-tags/${id}/sanitisation-report`).then(r => r.data);
 export const updateDocumentTags = (id, d) => api.put(`/document-tags/${id}`, d).then(r => r.data);
 export const sendQuery = (query, language = "en", conversationId = null, limit = 8) =>

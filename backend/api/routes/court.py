@@ -1,6 +1,6 @@
 # backend/api/routes/court.py
 from fastapi import APIRouter, Depends, HTTPException, status
-from api.dependencies.get_current_user import get_current_user
+from api.dependencies.check_permissions import require_permission
 from api.dependencies.get_database import DatabaseDependency
 from core.context import TenantContext
 from legal.court_service import score_case
@@ -18,11 +18,9 @@ def _to_model(doc: dict) -> CourtCase:
 
 @router.post("/cases", response_model=CourtCase)
 async def register_case(
-    data: CourtCaseCreate, db: DatabaseDependency, context: TenantContext = Depends(get_current_user),
+    data: CourtCaseCreate, db: DatabaseDependency,
+    context: TenantContext = Depends(require_permission("court:manage")),
 ) -> CourtCase:
-    # Registrar-only in a production build (require_permission("court:manage"));
-    # left open to any authenticated user here so the dashboard is demoable
-    # without needing a separate registrar role seeded in the DB.
     repo = CourtCaseRepository(db)
     score, flag = score_case(data.case_type, data.filed_date, data.adjournment_count, data.documents_complete)
     case_id = await repo.create(context.org_id, {
@@ -34,7 +32,7 @@ async def register_case(
 
 @router.get("/cases", response_model=list[CourtCase])
 async def list_court_cases(
-    db: DatabaseDependency, context: TenantContext = Depends(get_current_user),
+    db: DatabaseDependency, context: TenantContext = Depends(require_permission("court:manage")),
 ) -> list[CourtCase]:
     repo = CourtCaseRepository(db)
     docs = await repo.list_for_org(context.org_id)
@@ -43,7 +41,7 @@ async def list_court_cases(
 
 @router.get("/cases/{case_id}", response_model=CourtCase)
 async def get_court_case(
-    case_id: str, db: DatabaseDependency, context: TenantContext = Depends(get_current_user),
+    case_id: str, db: DatabaseDependency, context: TenantContext = Depends(require_permission("court:manage")),
 ) -> CourtCase:
     repo = CourtCaseRepository(db)
     doc = await repo.find_by_id(context.org_id, case_id)

@@ -7,6 +7,7 @@ from auth.models import (
     TokenResponse,
 )
 from auth.repository import AuthRepository
+from config import settings
 from core.email import send_activation_email
 from core.enums import Role
 from core.security import (
@@ -25,20 +26,31 @@ class AuthService:
         self.repo = repo
 
     async def register(self, request: RegisterRequest) -> TokenResponse:
-        existing_org = await self.repo.find_org_by_slug(request.organization_slug)
-        if existing_org:
-            raise HTTPException(status.HTTP_409_CONFLICT, "Organisation slug already taken")
-
         if not verify_otp(request.email, request.otp):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid or expired registration OTP")
 
-        org_id = await self.repo.create_org({
-            "name": request.organization_name,
-            "slug": request.organization_slug,
-            "is_active": True,
-        })
+        if request.account_type == "court":
+            role = Role.COURT
+            org = await self.repo.find_org_by_slug(settings.court_org_slug)
+            org_id = str(org["_id"]) if org else await self.repo.create_org({
+                "name": settings.court_org_name,
+                "slug": settings.court_org_slug,
+                "is_active": True,
+            })
+            slug_for_email = settings.court_org_slug
+        else:
+            if not request.organization_name or not request.organization_slug:
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, "Organisation name and slug are required")
+            if await self.repo.find_org_by_slug(request.organization_slug):
+                raise HTTPException(status.HTTP_409_CONFLICT, "Organisation slug already taken")
+            role = Role.ORG_SUPER_ADMIN
+            org_id = await self.repo.create_org({
+                "name": request.organization_name,
+                "slug": request.organization_slug,
+                "is_active": True,
+            })
+            slug_for_email = request.organization_slug
 
-        role = Role.ORG_SUPER_ADMIN
         perms = list(permissions_for_role(role))
         user_id = await self.repo.create_user({
             "org_id": org_id,
@@ -54,7 +66,7 @@ class AuthService:
 
         code = generate_setup_code()
         await self.repo.create_setup_token(org_id, user_id, request.email.lower(), code)
-        await send_activation_email(request.email, request.full_name, request.organization_slug, code)
+        await send_activation_email(request.email, request.full_name, slug_for_email, code)
 
         return self._make_tokens(org_id, user_id, role, perms, domain_id=None)
 

@@ -178,7 +178,7 @@ export default function Register() {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl">
             <img src={isDark ? logoDark : logoLight} alt="NyayaSetu" className="h-full w-full object-contain" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-cream">Think<span className="text-gold">Hive</span></h1>
+          <h1 className="font-display text-2xl font-bold text-cream">Nyaya<span className="text-gold">Setu</span></h1>
           <p className="text-rose-muted">Register your company</p>
         </div>
 

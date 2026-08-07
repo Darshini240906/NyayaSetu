@@ -31,7 +31,8 @@ class Settings(BaseSettings):
 
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_database: str = "nyayasetu"
-
+    court_org_slug: str = "court-registry"
+    court_org_name: str = "Court Registry"
     jwt_secret_key: str = "thinkhive-secret-change-in-production-32chars"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
