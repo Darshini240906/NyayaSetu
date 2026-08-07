@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Constant across light/dark, now variables (were hardcoded hex before)
+     so opacity modifiers like bg-gold/20 or text-danger/40 work */
+  --color-gold: #D4AF6A;
+  --color-gold-dark: #C9A15A;
+  --color-gold-light: #E4C88A;
+  --color-success: #4ADE80;
+  --color-danger: #E05252;
+  --color-warn: #E0A952;
+
+  --color-primary: var(--color-gold);
+  --color-primary-foreground: var(--color-base-deep);
+  --color-accent: var(--color-gold-light);
+  --color-accent-foreground: var(--color-base-deep);
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: var(--color-cream);
+}
+
+:root.dark {
+  --color-base: #2B0A0F;
+  --color-base-deep: #1A0508;
+  --color-surface: #3A1015;
+  --color-surface-hover: #451319;
+  --color-border: #4A1A1F;
+  --color-cream: #F5EFE0;
+  --color-rose-muted: #B99A97;
+
+  /* No green in dark mode, per request — tied to base so any bg-sage/text-sage
+     usage blends invisibly into the surrounding maroon surface. */
+  --color-sage: var(--color-base);
+
+  --color-secondary: #451319;
+  --color-secondary-foreground: #F5EFE0;
+  --color-muted: #3A1015;
+  --color-muted-foreground: #B99A97;
+  --color-sidebar: #1A0508;
+  --color-sidebar-foreground: #F5EFE0;
+  --color-sidebar-border: #4A1A1F;
+  --color-sidebar-active: #D4AF6A;
+  --color-sidebar-active-foreground: #1A0508;
+}
+:root.light {
+  --color-base: #FBF7EC;
+  --color-base-deep: #FFFFFF;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F0EAD8;
+  --color-border: #E3D9BE;
+  --color-cream: #3A1015;
+  --color-rose-muted: #8A6F63;
+
+  /* Sage green pulled from the logo's negative space — kept as an accent,
+     never a solid fill, so it stays secondary to gold. */
+  --color-sage: #8EB37D;
+
+  --color-secondary: #F0EAD8;
+  --color-secondary-foreground: #3A1015;
+  --color-muted: #FBF7EC;
+  --color-muted-foreground: #8A6F63;
+  --color-sidebar: #FFFFFF;
+  --color-sidebar-foreground: #3A1015;
+  --color-sidebar-border: #E3D9BE;
+  --color-sidebar-active: #D4AF6A;
+  --color-sidebar-active-foreground: #FFFFFF;
+}
+
+body {
+  background: var(--color-base);
+  color: var(--color-cream);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, .font-display { font-family: 'Playfair Display', serif; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
+
+.typewriter-caret::after {
+  content: '|';
+  animation: blink 0.9s step-end infinite;
+  margin-left: 2px;
+  color: var(--color-gold);
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+.stagger-item { opacity: 0; animation: fadeInUp 0.5s ease-out forwards; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+.progress-fill { width: 0%; animation: progressFill 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes progressFill { to { width: var(--fill-width); } }
