@@ -1,84 +1,207 @@
-# NyayaSetu — built on the ThinkHive codebase
+<div align="center">
 
-A legal-document assistant with two faces, built from the same document-understanding
-pipeline: **citizens** get their legal notices/FIRs/complaints explained in plain
-language, and **court registrars** get a triage dashboard to prioritize their case
-backlog. Hearing dates and deadlines can sync to Google Calendar automatically.
+# ⚖️ NyayaSetu
 
-> Rename note: I called it "NyayaSetu" as a placeholder ("nyaya" = justice, "setu" =
-> bridge). Rename freely — it only appears in `Sidebar.jsx`, `LandingPage.jsx`,
-> `AboutPage.jsx`, `config.py` (`app_name`), and a few email templates.
+### *Bridging the gap between citizens and the justice system*
 
-## What's reused from ThinkHive, as-is
-- Auth, multi-tenant `TenantContext`, RBAC (`require_permission`)
-- Document extraction: PDF / DOCX / TXT / OCR (image) extractors
-- The LLM service (`rag/service.py`) — Groq primary, Gemini fallback
-- MongoDB (Motor) + the general app scaffolding, Docker setup, dependency-injection pattern
+**न्याय** (nyaya) — justice · **सेतु** (setu) — bridge
 
-## What's new
-| Module | What it does |
+An AI-powered legal-document intelligence platform that decodes legal notices, FIRs, and complaints in plain language for citizens — and gives court registrars a real-time triage dashboard to manage their case backlog.
+
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](#license)
+
+[Overview](#-overview) • [Features](#-features) • [Architecture](#-architecture) • [Setup](#-setup) • [Known Gaps](#-known-gaps--roadmap)
+
+</div>
+
+---
+
+## 🧭 Overview
+
+Legal processes are often opaque to the people they affect most. A citizen who receives a court notice or files an FIR rarely understands what it means, what happens next, or what deadlines they're facing — while court registrars are buried under case backlogs with no easy way to prioritize what's urgent.
+
+**NyayaSetu** addresses both sides of that gap with a single document-understanding pipeline:
+
+- 🧑‍⚖️ **For citizens** — upload a legal document and get a plain-language summary, your rights and obligations, a procedural timeline, and a documentation-strength checklist.
+- 🏛️ **For court registrars** — a triage dashboard that scores and sorts the case backlog by urgency, so nothing critical slips through the cracks.
+- 🔔 **For everyone** — deadlines and hearing dates extracted from documents can sync straight to Google Calendar, with in-app reminders as a fallback.
+
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🧑‍⚖️ Citizen — "Understand My Case"
+- 📤 Upload legal notices, FIRs, or complaints (PDF / DOCX / TXT, incl. scanned images via OCR)
+- 📝 Plain-language case summary
+- 📋 Rights & obligations breakdown
+- 📅 Key dates & deadlines extracted automatically
+- ✅ Documentation-strength checklist
+- 🗺️ Procedural timeline for the case type
+
+</td>
+<td width="50%" valign="top">
+
+### 🏛️ Registrar — Court Dashboard
+- 📊 Case triage table with urgency scoring
+- 🔍 Filter and sort the backlog by risk
+- 🧮 Transparent, explainable scoring (case age, adjournments, doc completeness)
+- 🗂️ Case registration & tracking
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 🔔 Reminders & Calendar
+- ⏰ Reminders auto-created from any deadline found in a document
+- 🔗 One-click **Google Calendar** sync (OAuth2)
+- 📌 In-app reminders work with zero setup
+
+</td>
+<td width="50%" valign="top">
+
+### 🔐 Platform Foundations
+- 🏢 Multi-tenant architecture with role-based access control
+- 🌐 Multi-language document support (Hindi, Tamil, Telugu, Marathi, English)
+- 🎙️ Voice-based query support
+- 🐳 Dockerized for easy deployment
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TD
+    A["📄 Document Upload<br/>PDF · DOCX · TXT · Scanned Image"] --> B["🔎 Extraction Layer<br/>Text + OCR"]
+    B --> C["🧠 LLM Analysis Service<br/>Groq (primary) → Gemini (fallback)"]
+
+    C --> D["📝 Plain-Language Summary"]
+    C --> E["📅 Key Dates Extractor"]
+    C --> F["✅ Documentation Strength Check"]
+
+    G["📚 Procedural Timeline Templates<br/>(rule-based, per case type)"] --> H["🗺️ Case Timeline"]
+
+    E --> I["⏰ Reminders Engine"]
+    I --> J["🔗 Google Calendar Sync"]
+    I --> K["📌 In-App Reminders"]
+
+    L["🧮 Court Triage Scorer<br/>(transparent heuristic)"] --> M["🏛️ Registrar Dashboard"]
+
+    D --> N(("🧑‍⚖️ Citizen View"))
+    F --> N
+    H --> N
+
+    style C fill:#4f8cff,color:#fff
+    style G fill:#f5a623,color:#fff
+    style L fill:#f5a623,color:#fff
+    style N fill:#2ecc71,color:#fff
+    style M fill:#9b59b6,color:#fff
+```
+
+> **Why two different engines for timelines vs. scoring?** A hallucinated legal deadline is the one failure mode that could genuinely harm someone — so the **procedural timeline is never LLM-generated**. It's a fixed, hand-authored sequence per case type; only the "current stage" and specific key dates come from the document itself. Similarly, the **court triage score is a transparent heuristic**, not a black-box model — every input to the score is visible and explainable, with a clear seam to swap in a trained model once real case-pendency data is available.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
 |---|---|
-| `backend/legal/` | Document analysis (case type, plain-language summary, rights/obligations, key dates, checklist-based documentation strength), plus the **rule-based** procedural timeline templates and the **heuristic** court-triage scorer |
-| `backend/reminders/` | CRUD for reminders, auto-created from any deadline the model found a real date for |
-| `backend/calendar_integration/` | Google Calendar OAuth2 + event creation |
-| `frontend/src/pages/LegalAssistantPage.jsx` | "Understand My Case" — upload, summary, timeline, strength, key dates |
-| `frontend/src/pages/RemindersPage.jsx` | In-app reminders + "Connect Google Calendar" / "Add to Calendar" |
-| `frontend/src/pages/CourtDashboardPage.jsx` | Registrar triage table — register cases, filter/sort by risk |
+| **Frontend** | React, JavaScript |
+| **Backend** | Python, FastAPI |
+| **Database** | MongoDB (via Motor, async driver) |
+| **LLM Services** | Groq (primary), Gemini (fallback) |
+| **Calendar Integration** | Google Calendar API (OAuth 2.0) |
+| **Auth & Access Control** | Multi-tenant context, role-based permissions |
+| **Deployment** | Docker / docker-compose |
 
-## Two things worth knowing before you demo this
-1. **The procedural timeline is NOT generated by the LLM.** It's a fixed,
-   hand-authored sequence per case type (`legal/timeline_templates.py`). A
-   hallucinated legal deadline is the one failure mode that could actually harm
-   someone, so only the "current stage" and the specific key dates come from the
-   document itself.
-2. **The court triage score is a transparent heuristic, not a trained model**
-   (`legal/court_service.py` explains this in its own docstring). It uses the kind
-   of features a real model would (case age, adjournments, doc completeness) so it's
-   demoable and honest today, with a clear seam to swap in a model trained on real
-   case-pendency data later — which is what the original product idea calls for.
+---
 
-## What I removed from ThinkHive (not needed for this project)
-HR management, Organisations, Document Tags, Knowledge Map visualization, and the
-super-admin Analytics dashboard — along with their nav items, pages, and API routes.
-`DocumentsPage.jsx` remains but a couple of its tag/sanitisation-report buttons will
-404 since I didn't wire those routes back in; harmless unless clicked, and easy to
-strip further if you don't need general document management at all.
-
-I also removed hardcoded personal photos/LinkedIn links from the old `AboutPage.jsx`
-(that page was ThinkHive's team-credits page) and rewrote it as a generic mission page
-for this project.
-
-## Setup
+## 🚀 Setup
 
 ### Backend
+
 ```bash
 cd backend
-python -m venv venv && venv\Scripts\activate   # or `source venv/bin/activate` on Mac/Linux
+python -m venv venv
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # Mac/Linux
+
 pip install -r requirements.txt
-copy .env.example .env    # or `cp` on Mac/Linux — then fill in GROQ_API_KEY etc.
+cp .env.example .env         # then fill in GROQ_API_KEY etc.
+
 uvicorn main:app --reload
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 npm install
-copy .env.example .env    # or `cp`
+cp .env.example .env
+
 npm run dev
 ```
 
-### Google Calendar (optional)
-1. Google Cloud Console -> new project -> enable the **Google Calendar API**.
-2. Create an OAuth 2.0 **Web application** Client ID.
-3. Add `http://localhost:8000/api/v1/calendar/oauth/callback` under Authorized redirect URIs.
-4. Put the client ID/secret in `backend/.env`.
-Without this, everything else works — reminders just stay in-app until you configure it.
+### 🔗 Google Calendar Sync (optional)
 
-## Known gaps (MVP, be upfront about these if asked in an interview/demo)
-- Court-triage scoring is a heuristic, not an ML model — see above.
-- Calendar OAuth tokens are stored in Mongo unencrypted for simplicity; encrypt at
-  rest before using this with real users' Google accounts.
-- The LLM analysis prompt caps input at ~12k characters; very long documents get
-  truncated before analysis.
-- No automated tests were added for the new modules — worth adding before treating
-  this as production-ready.
+1. Open **Google Cloud Console** → create a new project → enable the **Google Calendar API**.
+2. Create an OAuth 2.0 **Web application** Client ID.
+3. Add `http://localhost:8000/api/v1/calendar/oauth/callback` under **Authorized redirect URIs**.
+4. Add the client ID/secret to `backend/.env`.
+
+> Skipping this is fine — reminders simply stay in-app until Calendar sync is configured.
+
+---
+
+## 📁 Project Structure
+
+```
+NyayaSetu/
+├── backend/
+│   ├── legal/                    # Case analysis, timeline templates, triage scorer
+│   ├── reminders/                # Deadline-based reminder CRUD
+│   ├── calendar_integration/     # Google Calendar OAuth2 + events
+│   └── ...                       # Auth, RBAC, document extraction, LLM service
+├── frontend/
+│   └── src/pages/
+│       ├── LegalAssistantPage.jsx    # "Understand My Case"
+│       ├── RemindersPage.jsx         # Reminders + Calendar connect
+│       └── CourtDashboardPage.jsx    # Registrar triage table
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## ⚠️ Known Gaps & Roadmap
+
+Being upfront about the current state (useful context for interviews/demos):
+
+- 🧮 **Court-triage scoring** is a heuristic today, not a trained ML model — designed with a clear seam to swap one in once real case-pendency data is available.
+- 🔓 **Calendar OAuth tokens** are stored in MongoDB unencrypted for simplicity — should be encrypted at rest before use with real Google accounts.
+- ✂️ **Document analysis prompt** caps input at ~12k characters — very long documents get truncated before analysis.
+- 🧪 **No automated tests** yet for the newer modules — a priority before treating this as production-ready.
+
+---
+
+## 📄 License
+
+This project is released under the [MIT License](LICENSE).
+
+<div align="center">
+
+**Built to make justice a little more legible.** ⚖️
+
+</div>
